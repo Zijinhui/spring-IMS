@@ -2,6 +2,7 @@ package com.Zi.spring_IMS.service;
 
 import com.Zi.spring_IMS.model.dto.UserDTO;
 import com.Zi.spring_IMS.model.entity.Account_Status;
+import com.Zi.spring_IMS.model.entity.Auth;
 import com.Zi.spring_IMS.model.entity.Role;
 import com.Zi.spring_IMS.model.entity.User;
 import com.Zi.spring_IMS.model.mapper.UserMapper;
@@ -43,12 +44,13 @@ public class UserServiceTest {
 
     private User user;
     private UserDTO userDTO;
+    private Auth auth;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Sample User
+        // S\sample User
         user = new User();
         user.setId(1);
         user.setName("John Doe");
@@ -59,7 +61,7 @@ public class UserServiceTest {
         user.setCreated_at(LocalDateTime.now());
         user.setUpdate_at(LocalDateTime.now());
 
-        // Sample UserDTO
+        // sample UserDTO
         userDTO = UserDTO.builder()
                 .name("John Doe")
                 .username("johndoe@example.com")
@@ -67,6 +69,14 @@ public class UserServiceTest {
                 .role(Role.MANAGER)
                 .status(Account_Status.SUSPENDED)
                 .build();
+
+        // sample Auth
+        auth = new Auth();
+        auth.setId(1);
+        auth.setUsername("johndoe@example.com");
+        auth.setPassword("NewPassword@123");
+        auth.setRole(Role.MANAGER);
+        auth.setStatus(Account_Status.ACTIVE);
     }
 
     @Test
@@ -109,6 +119,9 @@ public class UserServiceTest {
         when(userRepository.findByUsername("johndoe@example.com")).thenReturn(Optional.of(user));
         when(userMapper.toUserEntity(userDTO)).thenReturn(user);
         when(userRepository.save(any(User.class))).thenReturn(user);
+        // mock AuthRepository behavior
+        when(authRepository.findByUsername("johndoe@example.com")).thenReturn(Optional.of(auth));
+        when(authRepository.save(any(Auth.class))).thenReturn(auth);
 
         User result = userService.updateUser(userDTO);
 
@@ -117,6 +130,8 @@ public class UserServiceTest {
 
         verify(userRepository).findByUsername("johndoe@example.com");
         verify(userRepository).save(any(User.class));
+        verify(authRepository).findByUsername("johndoe@example.com"); // check auth is fetched
+        verify(authRepository).save(any(Auth.class)); // check auth is updated as well
     }
 
     @Test
@@ -125,7 +140,7 @@ public class UserServiceTest {
 
         assertThatThrownBy(() -> userService.updateUser(userDTO))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessage("username is not found!");
+                .hasMessage("username is not found in User Repository!");
 
         verify(userRepository).findByUsername("johndoe@example.com");
         verify(userRepository, never()).save(any(User.class));
@@ -149,7 +164,7 @@ public class UserServiceTest {
 
         assertThatThrownBy(() -> userService.deleteUser(1))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessage("id is not found");
+                .hasMessage("id is not found in User Repository!");
 
         verify(userRepository).existsById(1);
         verify(userRepository, never()).deleteById(anyInt());

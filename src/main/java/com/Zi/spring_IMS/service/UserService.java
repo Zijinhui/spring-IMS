@@ -32,7 +32,7 @@ public class UserService {
     public User updateUser(UserDTO userDTO) {
         // fetch the existing user by username
         User existingUser = userRepository.findByUsername(userDTO.getUsername())
-                .orElseThrow(()-> new RuntimeException("username is not found!"));
+                .orElseThrow(()-> new RuntimeException("username is not found in User Repository!"));
 
         if (!existingUser.getUsername().equals(userDTO.getUsername())) {
             throw new IllegalArgumentException("Username cannot be updated");
@@ -51,7 +51,7 @@ public class UserService {
 
         // update Auth entity
         Auth authUser = authRepository.findByUsername(userDTO.getUsername())
-                .orElseThrow(()-> new RuntimeException("id is not found!")); // assume user must exist 'cause this feature only available after user login
+                .orElseThrow(()-> new RuntimeException("id is not found in Auth Repository!")); // assume user must exist 'cause this feature only available after user login
         authUser.setPassword(userDTO.getPassword());
         authRepository.save(authUser);
 
@@ -60,7 +60,7 @@ public class UserService {
 
     public Boolean deleteUser(Integer id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("id is not found");
+            throw new RuntimeException("id is not found in User Repository!");
         }
         userRepository.deleteById(id);
         authRepository.deleteById(id);
